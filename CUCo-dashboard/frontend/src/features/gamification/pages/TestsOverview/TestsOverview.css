@@ -1,0 +1,288 @@
+/* Header Section */
+.tests-header {
+    margin-bottom: var(--space-4);
+  }
+  
+  .tests-title {
+    margin: 0 0 var(--space-2) 0;
+    font-size: 1.8em;
+  }
+  
+  .tests-description {
+    margin: 0;
+    color: var(--text);
+    opacity: 0.8;
+    line-height: 1.6;
+  }
+  
+  /* Completion Notification */
+  .completion-notification {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: var(--space-3);
+    border-radius: var(--radius);
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Emotion Entry Form */
+  .emotion-form {
+    margin-bottom: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--bg);
+  }
+  
+  .emotion-form-title {
+    margin: 0 0 var(--space-3) 0;
+    font-size: 1.2em;
+  }
+  
+  .emotion-form-group {
+    margin-bottom: var(--space-3);
+  }
+  
+  .emotion-form-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-weight: 600;
+    font-size: 0.95em;
+  }
+  
+  /* Emotion Selection Grid */
+  .emotion-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-2);
+  }
+  
+  .emotion-button {
+    padding: var(--space-2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--bg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: 0.9em;
+    font-weight: 400;
+    transition: all 0.2s;
+  }
+  
+  .emotion-button:hover {
+    border-color: var(--hover);
+    background-color: var(--hover);
+  }
+  
+  .emotion-button.selected {
+    font-weight: 600;
+  }
+  
+  .emotion-icon {
+    /* Dynamic color set via style attribute */
+  }
+  
+  /* Intensity Slider */
+  .intensity-container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  
+  .intensity-label-text {
+    font-size: 0.85em;
+    color: var(--text);
+    opacity: 0.7;
+  }
+  
+  .intensity-slider {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    /* Dynamic background set via style attribute */
+  }
+  
+  /* Preview Section */
+  .preview-container {
+    margin-top: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  .preview-label {
+    font-size: 0.9em;
+  }
+  
+  .preview-bubble {
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    color: white;
+    /* Dynamic size and color set via style attributes */
+  }
+  
+  /* Form Input */
+  .emotion-note-input {
+    width: 100%;
+    padding: var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    background-color: var(--bg);
+  }
+  
+  /* Submit Button */
+  .emotion-submit-button {
+    padding: var(--space-2) var(--space-4);
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .emotion-submit-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .emotion-submit-button:hover:not(:disabled) {
+    background-color: #1d4ed8;
+  }
+  
+  /* Empty State */
+  .empty-emotion-state {
+    text-align: center;
+    padding: var(--space-4);
+    color: var(--text);
+    opacity: 0.6;
+    background-color: var(--muted);
+    border-radius: var(--radius);
+  }
+  
+  .empty-emotion-title {
+    margin: 0 0 var(--space-2) 0;
+    font-size: 1.1em;
+  }
+  
+  .empty-emotion-subtitle {
+    margin: 0;
+    font-size: 0.9em;
+  }
+  
+  /* Emotion History */
+  .emotion-history-title {
+    margin-bottom: var(--space-3);
+    font-size: 1.3em;
+  }
+  
+  /* Recent Emotions Section */
+  .recent-emotions-container {
+    margin-bottom: var(--space-4);
+    padding: var(--space-3);
+    background-color: var(--muted);
+    border-radius: var(--radius);
+  }
+  
+  .recent-emotions-title {
+    margin: 0 0 var(--space-2) 0;
+    font-size: 1em;
+  }
+  
+  .recent-emotions-bubbles {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  
+  .emotion-bubble {
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    transition: transform 0.2s;
+    color: white;
+    /* Dynamic size and color set via style attributes */
+  }
+  
+  .emotion-bubble:hover {
+    transform: scale(1.1);
+  }
+  
+  /* Daily Timeline */
+  .timeline-day {
+    margin-bottom: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-3);
+  }
+  
+  .timeline-day-title {
+    margin: 0 0 var(--space-2) 0;
+    font-size: 1em;
+  }
+  
+  .timeline-day-emotions {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  
+  .timeline-emotion-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  
+  .timeline-bubble {
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    color: white;
+    /* Dynamic size and color set via style attributes */
+  }
+  
+  .timeline-emotion-details {
+    font-size: 0.8em;
+  }
+  
+  .timeline-emotion-name {
+    font-weight: 600;
+  }
+  
+  .timeline-emotion-timestamp {
+    opacity: 0.7;
+  }
+  
+  .timeline-emotion-note {
+    opacity: 0.6;
+    font-size: 0.9em;
+    margin-top: 2px;
+  }

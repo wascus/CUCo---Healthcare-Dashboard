@@ -1,0 +1,391 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String          @id @default(uuid())
+  email                  String          @unique
+  username               String          @unique
+  passwordHash           String
+  createdAt              DateTime        @default(now())
+  name                   String?
+  balance                Int             @default(0)
+  connectionsOwned       Connection[]    @relation("ConnectionOwner")
+  connectionsTargetingMe Connection[]    @relation("ConnectionTargetUser")
+  contacts               Contact[]       @relation("ContactOwner")
+  notes                  DiaryNote[]
+  emotionalTests         EmotionEntry[]  @relation("emotionalTest")
+  groupsOwned            Group[]         @relation("GroupOwner")
+  groupMemberships       GroupMember[]   @relation("GroupMembership")
+  notificationsAuthored  Notification[]  @relation("NotificationActor")
+  notificationsReceived  Notification[]  @relation("NotificationRecipient")
+  streak                 Streak?
+  tasks                  Task[]
+  topicSharesOwned       TopicShare[]    @relation("TopicShareOwner")
+  topicSharesReceived    TopicShare[]    @relation("TopicShareRecipient")
+  userMilestones         UserMilestone[]
+  userTopics             UserTopic[]
+  inventory_items        InventoryItem[]
+}
+
+model GriefTopic {
+  id         String      @id @default(uuid())
+  key        String      @unique
+  title      String
+  promptText String?
+  createdAt  DateTime    @default(now())
+  userTopics UserTopic[]
+}
+
+model UserTopic {
+  id          String       @id @default(uuid())
+  userId      String
+  topicId     String?
+  createdAt   DateTime     @default(now())
+  placement   Placement    @default(BASE)
+  shared      Boolean      @default(false)
+  status      TopicStatus  @default(TEXT)
+  updatedAt   DateTime     @updatedAt
+  description String?
+  customTitle String?
+  topicShares TopicShare[]
+  topic       GriefTopic?  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+}
+
+model DiaryNote {
+  id        String   @id @default(uuid())
+  userId    String
+  content   String
+  shared    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  kind      NoteKind
+  title     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id          String       @id @default(cuid())
+  ownerId     String
+  displayName String
+  email       String?
+  phone       String?
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  connections Connection[]
+  owner       User         @relation("ContactOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, email], name: "ownerId_email")
+}
+
+model Connection {
+  id              String           @id @default(cuid())
+  ownerId         String
+  targetUserId    String?
+  contactId       String?
+  relationship    RelationshipType @default(OTHER)
+  accessLevel     AccessLevel      @default(NONE)
+  status          ConnectionStatus @default(PENDING)
+  label           String?
+  tags            String[]
+  invitedVia      String?
+  inviteToken     String?          @unique
+  inviteExpiresAt DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  note            String?
+  expiresAt       DateTime?
+  customBase      String?
+  contact         Contact?         @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  owner           User             @relation("ConnectionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  targetUser      User?            @relation("ConnectionTargetUser", fields: [targetUserId], references: [id])
+  notifications   Notification[]
+
+  @@unique([ownerId, targetUserId], map: "uniq_owner_target_user")
+  @@unique([ownerId, contactId], map: "uniq_owner_contact")
+  @@index([ownerId, createdAt])
+  @@index([targetUserId])
+  @@index([contactId])
+}
+
+model Notification {
+  id           String             @id @default(cuid())
+  userId       String
+  actorId      String?
+  type         NotificationType
+  status       NotificationStatus @default(UNREAD)
+  connectionId String?
+  payload      Json?
+  createdAt    DateTime           @default(now())
+  readAt       DateTime?
+  actor        User?              @relation("NotificationActor", fields: [actorId], references: [id])
+  connection   Connection?        @relation(fields: [connectionId], references: [id])
+  user         User               @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, createdAt])
+  @@index([connectionId])
+}
+
+model Group {
+  id          String        @id @default(cuid())
+  ownerId     String
+  name        String
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  topicShares TopicShare[]
+
+  @@unique([ownerId, name])
+  @@index([ownerId, createdAt])
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  groupId   String
+  memberId  String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  member    User     @relation("GroupMembership", fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, memberId])
+  @@index([memberId])
+}
+
+/// Shares are attached to the *owner’s instance* of a topic (UserTopic)
+/// You can share to either a specific user (sharedWithId) OR a group (groupId)
+/// One of them must be non-null.
+model TopicShare {
+  id           String          @id @default(cuid())
+  ownerId      String
+  userTopicId  String
+  sharedWithId String?
+  groupId      String?
+  permission   SharePermission @default(VIEW)
+  expiresAt    DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  group        Group?          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  owner        User            @relation("TopicShareOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  sharedWith   User?           @relation("TopicShareRecipient", fields: [sharedWithId], references: [id], onDelete: Cascade)
+  userTopic    UserTopic       @relation(fields: [userTopicId], references: [id], onDelete: Cascade)
+
+  @@unique([userTopicId, sharedWithId], map: "uniq_topic_direct_share")
+  @@unique([userTopicId, groupId], map: "uniq_topic_group_share")
+  @@index([ownerId])
+  @@index([userTopicId])
+  @@index([sharedWithId])
+  @@index([groupId])
+  @@index([expiresAt])
+}
+
+model EmotionEntry {
+  id        String      @id @default(cuid())
+  userId    String
+  emotion   EmotionName
+  color     String
+  intensity Int
+  note      String?
+  createdAt DateTime    @default(now())
+  user      User        @relation("emotionalTest", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Item {
+  id              String          @id @default(cuid())
+  name            String
+  description     String
+  price           Int
+  image           String
+  x               Int
+  y               Int
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  category        String          @default("other")
+  happinessBonus  Int             @default(0)
+  inventory_items InventoryItem[]
+
+  @@index([category])
+  @@index([createdAt])
+}
+
+/// *
+/// * New canonical Prisma model for inventory lines, mapped
+/// * to your existing table "inventory_items".
+model InventoryItem {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  item      Item     @relation(fields: [itemId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@map("inventory_items")
+}
+
+model Task {
+  id            String       @id @default(cuid())
+  userId        String
+  title         String
+  description   String?
+  priority      TaskPriority @default(MEDIUM)
+  completed     Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  completedAt   DateTime?
+  scheduledDate DateTime?
+  scheduledTime String?
+  taskType      TaskType     @default(LONG_TERM)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, taskType])
+}
+
+model Streak {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  currentStreak    Int       @default(0)
+  maxStreak        Int       @default(0)
+  lastActivityDate DateTime?
+  streakStartDate  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Milestone {
+  id             String          @id @default(cuid())
+  key            String          @unique
+  title          String
+  description    String?
+  rewardPoints   Int
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  userMilestones UserMilestone[]
+
+  @@index([isActive])
+}
+
+model UserMilestone {
+  id          String    @id @default(cuid())
+  userId      String
+  milestoneId String
+  completed   Boolean   @default(false)
+  claimed     Boolean   @default(false)
+  completedAt DateTime?
+  claimedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, milestoneId])
+  @@index([userId, completed])
+  @@index([userId, claimed])
+}
+
+enum Placement {
+  BASE
+  MIDDLE
+  SUMMIT
+}
+
+enum TopicStatus {
+  TEXT
+  CHECK
+  TEAR
+  IMAGE
+}
+
+enum NoteKind {
+  POSITIVE
+  EMOTIONAL
+}
+
+enum RelationshipType {
+  BEST_FRIEND
+  GOOD_FRIEND
+  PARTNER
+  PARENT
+  CHILD
+  SIBLING
+  AUNT_UNCLE
+  COUSIN
+  THERAPIST
+  DOCTOR
+  OTHER
+}
+
+enum AccessLevel {
+  NONE
+  POSITIVE_ONLY
+  NEGATIVE_ONLY
+  FULL
+  CUSTOM
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  BLOCKED
+  REVOKED
+}
+
+enum NotificationType {
+  INVITE_RECEIVED
+  INVITE_RESPONSE
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
+
+enum SharePermission {
+  VIEW
+  COMMENT
+  EDIT
+}
+
+enum EmotionName {
+  Joy
+  Sadness
+  Anger
+  Fear
+  Hope
+  Love
+  Guilt
+  Acceptance
+  Confusion
+  Gratitude
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskType {
+  SHORT_TERM
+  LONG_TERM
+}

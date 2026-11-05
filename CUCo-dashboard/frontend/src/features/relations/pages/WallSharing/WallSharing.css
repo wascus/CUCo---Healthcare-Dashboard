@@ -1,0 +1,9 @@
+/* Minimal helpers — most styling is via MUI's sx */
+.ws-ul {
+  margin: 0;
+  padding-inline-start: 20px;
+  color: rgba(0,0,0,.62);
+}
+.ws-ul li { margin: 4px 0; }
+
+html, body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }

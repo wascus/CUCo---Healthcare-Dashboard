@@ -1,0 +1,18 @@
+# Local project snapshots
+backups/
+
+# Editor / tool folders
+.zencoder/
+.zenflow/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Local curl cookie jars (contain session tokens)
+cookies.txt
